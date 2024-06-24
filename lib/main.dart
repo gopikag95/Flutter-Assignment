@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:weather_app/recentsearch.dart';
-import 'package:weather_app/search.dart';
+import 'package:weather_app/recent_search_screen.dart';
+import 'package:weather_app/search_screen.dart';
 
-import 'favourites.dart';
+import 'favourites-screen.dart';
 import 'home.dart';
 
 void main() {
@@ -15,12 +15,12 @@ class WeatherApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const HomeScreen(),
+      home: HomeScreen(),
       routes: {
         '/search': (context) => SearchScreen(),
         '/favourite': (context) => FavouriteScreen(),
         '/recent': (context) => RecentSearchScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => HomeScreen(),
       },
     );
   }

@@ -1,7 +1,53 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class HomeScreen extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _WeatherScreenState createState() => _WeatherScreenState();
+}
+
+class _WeatherScreenState extends State<HomeScreen> {
+  String _temperature = '';
+  String _description = '';
+  String _cityName = 'Udupi';
+  String _dateTime = "";
+
+  @override
+  void initState() {
+    super.initState();
+    fetchWeather();
+  }
+
+  Future<void> fetchWeather() async {
+    const apiKey = '40971316b92f3b5242754e0f651139ec';
+    final url =
+        'https://api.openweathermap.org/data/2.5/weather?q=$_cityName&units=metric&appid=$apiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final temperature = data['main']['temp'];
+        final description = data['weather'][0]['main'];
+        print("Gopikkaaa::: $data");
+        setState(() {
+          _temperature = temperature.toString();
+          _description = description;
+          int dt = data['dt'];
+          _dateTime = formatDateTime(dt);
+        });
+      } else {
+        throw Exception('Failed to load weather data');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +125,7 @@ class HomeScreen extends StatelessWidget {
                   Container(
                     margin: EdgeInsets.only(top: 35.0),
                     child: Text(
-                      'Wed, 28 Nov 2018    11:35 AM',
+                      _dateTime,
                       style: TextStyle(
                           fontSize: 14.0,
                           fontWeight: FontWeight.normal,
@@ -88,7 +134,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    'Udupi, Karnataka',
+                    _cityName,
                     style: TextStyle(
                         fontSize: 20.0,
                         fontWeight: FontWeight.bold,
@@ -131,7 +177,7 @@ class HomeScreen extends StatelessWidget {
                               // Handle temperature text click
                             },
                             child: Text(
-                              "31",
+                              _temperature,
                               style: TextStyle(
                                   fontSize: 52.0,
                                   fontWeight: FontWeight.bold,
@@ -140,7 +186,7 @@ class HomeScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 5),
                           Text(
-                            'Mostly sunny',
+                            _description,
                             style: TextStyle(fontSize: 16.0),
                           ),
                         ],
@@ -153,4 +199,15 @@ class HomeScreen extends StatelessWidget {
           )),
     );
   }
+}
+
+String formatDateTime(int dt) {
+  // Create a DateTime object from the dt value in seconds since epoch
+  DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(dt * 1000000);
+
+  // Formatter for the desired format
+  DateFormat formatter = DateFormat('E, d MMM yyyy HH:mm a');
+
+  // Format the DateTime object and return the string
+  return formatter.format(dateTime);
 }

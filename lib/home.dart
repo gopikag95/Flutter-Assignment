@@ -1,8 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:weather_app/weather_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,40 +10,32 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _WeatherScreenState extends State<HomeScreen> {
-  String _temperature = '';
+  double _temperature = 0.00;
   String _description = '';
   String _cityName = 'Udupi';
   String _dateTime = "";
+  Map<String, dynamic>? _weatherData;
+  final WeatherService _weatherService = WeatherService();
 
   @override
   void initState() {
     super.initState();
-    fetchWeather();
+    _fetchWeather();
   }
 
-  Future<void> fetchWeather() async {
-    const apiKey = '40971316b92f3b5242754e0f651139ec';
-    final url =
-        'https://api.openweathermap.org/data/2.5/weather?q=$_cityName&units=metric&appid=$apiKey';
-
+  Future<void> _fetchWeather() async {
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final temperature = data['main']['temp'];
-        final description = data['weather'][0]['main'];
-        print("Gopikkaaa::: $data");
-        setState(() {
-          _temperature = temperature.toString();
-          _description = description;
-          int dt = data['dt'];
-          _dateTime = formatDateTime(dt);
-        });
-      } else {
-        throw Exception('Failed to load weather data');
-      }
+      final data = await _weatherService.fetchWeather(_cityName);
+      print("Dataa :::: $data");
+      setState(() {
+        _weatherData = data;
+        _temperature = _weatherData?['main']['temp'];
+        _description = _weatherData?['weather'][0]['main'];
+        int dt = _weatherData?['dt'];
+        _dateTime = formatDateTime(dt);
+      });
     } catch (e) {
-      print(e);
+      print('Error fetching weather: $e');
     }
   }
 
@@ -177,7 +167,7 @@ class _WeatherScreenState extends State<HomeScreen> {
                               // Handle temperature text click
                             },
                             child: Text(
-                              _temperature,
+                              _temperature.toString(),
                               style: TextStyle(
                                   fontSize: 52.0,
                                   fontWeight: FontWeight.bold,

@@ -1,7 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:weather_app/weather_service.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -11,6 +9,8 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreen extends State<SearchScreen> {
   TextEditingController _controller = TextEditingController();
   List<String> _cities = [];
+  final WeatherService _weatherService = WeatherService();
+
   bool _isLoading = false;
 
   Future<void> _searchCity(String query) async {
@@ -25,22 +25,11 @@ class _SearchScreen extends State<SearchScreen> {
       _isLoading = true;
     });
 
-    // Replace with your actual API call
-    final response = await http.get(Uri.parse(
-        'http://api.openweathermap.org/data/2.5/find?q=$query&type=like&sort=population&cnt=30&appid=40971316b92f3b5242754e0f651139ec'));
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      setState(() {
-        _cities = List<String>.from(data['list'].map((city) => city['name']));
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-      throw Exception('Failed to load cities');
-    }
+    final data = await _weatherService.searchCity(query);
+    setState(() {
+      _cities = List<String>.from(data['list'].map((city) => city['name']));
+      _isLoading = false;
+    });
   }
 
   @override

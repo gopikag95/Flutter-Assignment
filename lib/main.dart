@@ -15,12 +15,12 @@ class WeatherApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: HomeScreen(),
+      home: const HomeScreen(),
       routes: {
         '/search': (context) => SearchScreen(),
-        '/favourite': (context) => FavouriteScreen(),
+        '/favourite': (context) => const FavouriteScreen(),
         '/recent': (context) => RecentSearchScreen(),
-        '/home': (context) => HomeScreen(),
+        '/home': (context) => const HomeScreen(),
       },
     );
   }

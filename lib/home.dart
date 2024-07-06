@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:weather_app/search_screen.dart';
 import 'package:weather_app/weather_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class _WeatherScreenState extends State<HomeScreen> {
   String _description = '';
   String _cityName = 'Udupi';
   String _dateTime = "";
+  bool _isLoading = false;
   Map<String, dynamic>? _weatherData;
   final WeatherService _weatherService = WeatherService();
 
@@ -24,18 +26,41 @@ class _WeatherScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchWeather() async {
+    setState(() {
+      _isLoading = true;
+    });
     try {
       final data = await _weatherService.fetchWeather(_cityName);
-      print("Dataa :::: $data");
+      print("Weather Data :::: $data");
       setState(() {
         _weatherData = data;
         _temperature = _weatherData?['main']['temp'];
         _description = _weatherData?['weather'][0]['main'];
         int dt = _weatherData?['dt'];
         _dateTime = formatDateTime(dt);
+        _isLoading = false;
       });
     } catch (e) {
       print('Error fetching weather: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _navigateAndDisplaySelection(BuildContext context) async {
+    // Navigate to the search screen and wait for the result
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SearchScreen()),
+    );
+
+    // If a result was returned, update the city name and fetch the weather
+    if (result != null && result is String) {
+      setState(() {
+        _cityName = result;
+      });
+      _fetchWeather();
     }
   }
 
@@ -60,19 +85,20 @@ class _WeatherScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.search),
             color: Colors.white,
             onPressed: () {
-              Navigator.pushNamed(context, '/search');
+              //Navigator.pushNamed(context, '/search');
+              _navigateAndDisplaySelection(context);
             },
           ),
         ],
       ),
       drawer: Drawer(
         child: ListView(
-          padding: EdgeInsets.only(left: 15.0),
+          padding: const EdgeInsets.only(left: 15.0),
           children: <Widget>[
             Container(
-              margin: EdgeInsets.only(top: 40.0),
+              margin: const EdgeInsets.only(top: 40.0),
               child: ListTile(
-                title: Text('Home'),
+                title: const Text('Home'),
                 onTap: () {
                   // Close the drawer and navigate to Home
                   Navigator.pop(context);
@@ -81,7 +107,7 @@ class _WeatherScreenState extends State<HomeScreen> {
               ),
             ),
             ListTile(
-              title: Text('Favourite'),
+              title: const Text('Favourite'),
               onTap: () {
                 // Close the drawer and navigate to Favourite
                 Navigator.pop(context);
@@ -89,7 +115,7 @@ class _WeatherScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              title: Text('Recent Search'),
+              title: const Text('Recent Search'),
               onTap: () {
                 // Close the drawer and navigate to Recent Search
                 Navigator.pop(context);
@@ -109,82 +135,87 @@ class _WeatherScreenState extends State<HomeScreen> {
                   fit: BoxFit.fill,
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(top: 35.0),
-                    child: Text(
-                      _dateTime,
-                      style: TextStyle(
-                          fontSize: 14.0,
-                          fontWeight: FontWeight.normal,
-                          color: Color(0xFFFFFFFF)),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Text(
-                    _cityName,
-                    style: TextStyle(
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFFFFFFFF)),
-                  ),
-                  SizedBox(height: 20),
-                  Center(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Icon(Icons.favorite_border, color: Color(0xFFFFFFFF)),
-                        SizedBox(width: 10),
-                        GestureDetector(
-                          onTap: () {
-                            // Handle add to favorites action
-                          },
+              _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.only(top: 35.0),
                           child: Text(
-                            'Add to favourite',
-                            style: TextStyle(
-                                fontSize: 13.0, color: Color(0xFFFFFFFF)),
+                            _dateTime,
+                            style: const TextStyle(
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.normal,
+                                color: Color(0xFFFFFFFF)),
                           ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          _cityName,
+                          style: const TextStyle(
+                              fontSize: 20.0,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFFFFFF)),
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              const Icon(Icons.favorite_border,
+                                  color: Color(0xFFFFFFFF)),
+                              const SizedBox(width: 10),
+                              GestureDetector(
+                                onTap: () {
+                                  // Handle add to favorites action
+                                },
+                                child: const Text(
+                                  'Add to favourite',
+                                  style: TextStyle(
+                                      fontSize: 13.0, color: Color(0xFFFFFFFF)),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+                        Column(
+                          children: <Widget>[
+                            const Icon(
+                              Icons.sunny,
+                              color: Color(0xFFFFFFFF),
+                              size: 50.0,
+                            ), // Add sun image asset
+                            const SizedBox(width: 10),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                GestureDetector(
+                                  onTap: () {
+                                    // Handle temperature text click
+                                  },
+                                  child: Text(
+                                    _temperature.toString(),
+                                    style: const TextStyle(
+                                        fontSize: 52.0,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFFFFFFF)),
+                                  ),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  _description,
+                                  style: const TextStyle(fontSize: 16.0),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 50),
-                  Column(
-                    children: <Widget>[
-                      Icon(
-                        Icons.sunny,
-                        color: Color(0xFFFFFFFF),
-                        size: 50.0,
-                      ), // Add sun image asset
-                      SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          GestureDetector(
-                            onTap: () {
-                              // Handle temperature text click
-                            },
-                            child: Text(
-                              _temperature.toString(),
-                              style: TextStyle(
-                                  fontSize: 52.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFFFFFFF)),
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Text(
-                            _description,
-                            style: TextStyle(fontSize: 16.0),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
             ],
           )),
     );
@@ -192,12 +223,7 @@ class _WeatherScreenState extends State<HomeScreen> {
 }
 
 String formatDateTime(int dt) {
-  // Create a DateTime object from the dt value in seconds since epoch
   DateTime dateTime = DateTime.fromMicrosecondsSinceEpoch(dt * 1000000);
-
-  // Formatter for the desired format
   DateFormat formatter = DateFormat('E, d MMM yyyy HH:mm a');
-
-  // Format the DateTime object and return the string
   return formatter.format(dateTime);
 }

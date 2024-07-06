@@ -76,19 +76,18 @@ class _SearchScreen extends State<SearchScreen> {
         child: Column(
           children: [
             Expanded(
-              child: _cities.isEmpty
-                  ? Center(child: Text('No cities found'))
-                  : ListView.builder(
-                      itemCount: _cities.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(_cities[index]),
-                          onTap: () {
-                            // Handle city selection
-                          },
-                        );
-                      },
-                    ),
+              child: ListView.builder(
+                itemCount: _cities.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(_cities[index]),
+                    onTap: () {
+                      // Handle city selection
+                      Navigator.pop(context, _cities[index]);
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

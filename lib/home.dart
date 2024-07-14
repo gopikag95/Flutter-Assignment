@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/search_screen.dart';
 import 'package:weather_app/weather_service.dart';
 
@@ -16,6 +17,7 @@ class _WeatherScreenState extends State<HomeScreen> {
   String _cityName = 'Udupi';
   String _dateTime = "";
   bool _isLoading = false;
+  bool _isFavorite = false;
   Map<String, dynamic>? _weatherData;
   final WeatherService _weatherService = WeatherService();
 
@@ -23,6 +25,7 @@ class _WeatherScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _fetchWeather();
+    _checkIfFavorite();
   }
 
   Future<void> _fetchWeather() async {
@@ -61,6 +64,37 @@ class _WeatherScreenState extends State<HomeScreen> {
         _cityName = result;
       });
       _fetchWeather();
+      _checkIfFavorite();
+    }
+  }
+
+  Future<void> _checkIfFavorite() async {
+    _isFavorite = await _isCityInFavourites();
+    setState(() {});
+  }
+
+  Future<bool> _isCityInFavourites() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> favourites = prefs.getStringList('favourites') ?? [];
+    return favourites.contains(_cityName);
+  }
+
+  Future<void> _addToFavourites() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> favourites = prefs.getStringList('favourites') ?? [];
+    if (!favourites.contains(_cityName)) {
+      favourites.add(_cityName);
+      await prefs.setStringList('favourites', favourites);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$_cityName added to favourites')),
+      );
+      setState(() {
+        _isFavorite = true;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$_cityName is already in favourites')),
+      );
     }
   }
 
@@ -165,13 +199,15 @@ class _WeatherScreenState extends State<HomeScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              const Icon(Icons.favorite_border,
-                                  color: Color(0xFFFFFFFF)),
+                              Icon(
+                                _isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.white,
+                              ),
                               const SizedBox(width: 10),
                               GestureDetector(
-                                onTap: () {
-                                  // Handle add to favorites action
-                                },
+                                onTap: _addToFavourites,
                                 child: const Text(
                                   'Add to favourite',
                                   style: TextStyle(

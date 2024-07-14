@@ -58,7 +58,6 @@ class _WeatherScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (context) => SearchScreen()),
     );
 
-    // If a result was returned, update the city name and fetch the weather
     if (result != null && result is String) {
       setState(() {
         _cityName = result;
@@ -119,7 +118,6 @@ class _WeatherScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.search),
             color: Colors.white,
             onPressed: () {
-              //Navigator.pushNamed(context, '/search');
               _navigateAndDisplaySelection(context);
             },
           ),
@@ -134,7 +132,6 @@ class _WeatherScreenState extends State<HomeScreen> {
               child: ListTile(
                 title: const Text('Home'),
                 onTap: () {
-                  // Close the drawer and navigate to Home
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/home');
                 },
@@ -151,7 +148,6 @@ class _WeatherScreenState extends State<HomeScreen> {
             ListTile(
               title: const Text('Recent Search'),
               onTap: () {
-                // Close the drawer and navigate to Recent Search
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/recent');
               },

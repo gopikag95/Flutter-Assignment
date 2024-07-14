@@ -84,7 +84,8 @@ class _FavouriteScreenState extends State<FavouriteScreen> {
                                       ),
                                     ),
                                     Text(
-                                      'Sunny', // Replace with the actual weather description
+                                      'Sunny',
+                                      // Replace with the actual weather description
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.normal,

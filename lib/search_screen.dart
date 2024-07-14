@@ -50,20 +50,20 @@ class _SearchScreen extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight + 20),
+        preferredSize: const Size.fromHeight(kToolbarHeight + 20),
         // Adjust height for padding
         child: Container(
-          padding: EdgeInsets.only(top: 20), // Add desired top padding
+          padding: const EdgeInsets.only(top: 20), // Add desired top padding
           child: AppBar(
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
             title: TextField(
               controller: _controller,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Search for city',
                 border: InputBorder.none,
               ),

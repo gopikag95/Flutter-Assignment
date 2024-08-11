@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:weather_app/search_screen.dart';
 import 'package:weather_app/weather_service.dart';
+
+import 'favourites-screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -28,6 +32,16 @@ class _WeatherScreenState extends State<HomeScreen> {
     _checkIfFavorite();
   }
 
+  void _updateWeatherData(Map<String, dynamic> data) {
+    setState(() {
+      _cityName = data['cityName'];
+      _temperature = data['temperature'];
+      _description = data['description'];
+      _dateTime = ""; // Add a method to update the date if needed
+      _isLoading = false;
+    });
+  }
+
   Future<void> _fetchWeather() async {
     setState(() {
       _isLoading = true;
@@ -48,6 +62,18 @@ class _WeatherScreenState extends State<HomeScreen> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _navigateToFavotiteScreen(BuildContext context) async {
+    // Navigate to the search screen and wait for the result
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const FavouriteScreen()),
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      _updateWeatherData(result);
     }
   }
 
@@ -75,14 +101,33 @@ class _WeatherScreenState extends State<HomeScreen> {
   Future<bool> _isCityInFavourites() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> favourites = prefs.getStringList('favourites') ?? [];
-    return favourites.contains(_cityName);
+
+    // Check if the city is already in the favourites
+    for (String favourite in favourites) {
+      Map<String, dynamic> cityData = jsonDecode(favourite);
+      if (cityData['cityName'] == _cityName) {
+        return true;
+      }
+    }
+    return false;
   }
 
   Future<void> _addToFavourites() async {
     final prefs = await SharedPreferences.getInstance();
     List<String> favourites = prefs.getStringList('favourites') ?? [];
-    if (!favourites.contains(_cityName)) {
-      favourites.add(_cityName);
+
+    // Create a map with the city name and temperature
+    Map<String, dynamic> cityData = {
+      'cityName': _cityName,
+      'temperature': _temperature,
+      'description': _description
+    };
+
+    // Serialize the map to a JSON string
+    String cityDataJson = jsonEncode(cityData);
+
+    if (!favourites.contains(cityDataJson)) {
+      favourites.add(cityDataJson);
       await prefs.setStringList('favourites', favourites);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('$_cityName added to favourites')),
@@ -142,7 +187,8 @@ class _WeatherScreenState extends State<HomeScreen> {
               onTap: () {
                 // Close the drawer and navigate to Favourite
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/favourite');
+                _navigateToFavotiteScreen(context);
+                //Navigator.pushNamed(context, '/favourite');
               },
             ),
             ListTile(
